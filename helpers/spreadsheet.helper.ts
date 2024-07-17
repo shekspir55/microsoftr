@@ -5,6 +5,12 @@ export const getSheet = async (
   sheetName: string
 ): Promise<any[]> => {
   const apiKey = process.env.GOOGLE_API_KEY;
+
+  // validate the spreadsheet URL to be valid google sheets URL
+  if (!spreadsheetUrl.includes("https://docs.google.com/spreadsheets/")) {
+    throw new Error("Invalid Google spreadsheet URL");
+  }
+  
   const spreadsheetId = spreadsheetUrl.split("/d/")[1].split("/")[0];
   const range = sheetName ? `${sheetName}!A:Z` : "A:Z";
   if (!apiKey) {

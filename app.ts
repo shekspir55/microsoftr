@@ -1,15 +1,10 @@
 import express, { Application } from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
-
 import {
-  bombardWithCronRecord,
-  deleteCronRecord,
-  getCronRecords,
-  postCronRecord,
-  putCronRecord,
-} from "./controllers/cron-record.controller";
-import { getLogs } from "./controllers/log.controller";
+  getArrayDataFromSheet,
+  getObjectFromSheet,
+} from "./helpers/spreadsheet.helper";
 
 const app: Application = express();
 
@@ -21,15 +16,35 @@ if (process.env.NODE_ENV !== "production") {
 // test route
 app.get("/", (req, res) => res.json({ message: "Hello world" }));
 
-// logs
-app.get("/api/logs", getLogs);
+app.get("/api/array-data-from-sheet", async (req, res) => {
+  const { spreadsheetUrl, sheet, format } = req.query;
+  try {
+    const result = await getArrayDataFromSheet(
+      spreadsheetUrl as string,
+      sheet as string,
+      JSON.parse(format as string)
+    );
+    res.status(200).send(result);
+  } catch (error: Error) {
+    console.error(error);
+    res.status(500).send({ message: error.message });
+  }
+});
 
-// cron-records
-app.get("/api/cron-records", getCronRecords);
-app.post("/api/cron-records", postCronRecord);
-app.put("/api/cron-records/:recordId", putCronRecord);
-app.delete("/api/cron-records/:recordId", deleteCronRecord);
+app.get("/api/object-from-sheet", async (req, res) => {
+  const { spreadsheetUrl, sheet, format } = req.query;
 
-app.post("/api/cron-records/bombard", bombardWithCronRecord);
+  try {
+    const result = await getObjectFromSheet(
+      spreadsheetUrl as string,
+      sheet as string,
+      JSON.parse(format as string)
+    );
+    res.status(200).send(result);
+  } catch (error: Error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+});
 
 export default app;
