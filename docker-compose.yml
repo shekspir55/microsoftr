@@ -1,0 +1,6 @@
+services:
+  
+  micron:
+    image: microsoftr
+    ports:
+      - "3000:3000"

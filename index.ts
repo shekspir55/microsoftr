@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import app from "./src/app";
+import app from "./app";
 
 if (process.env.NODE_ENV !== "production") {
   dotenv.config();

@@ -43,6 +43,7 @@ app.get("/api/object-from-sheet", async (req, res) => {
       sheet as string,
       JSON.parse(format as string)
     );
+    
     res.status(200).send(result);
   } catch (error) {
     console.error(error);
