@@ -20,7 +20,7 @@ export const getSheet = async (
   }
 
   const sheetResponse = await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}values/${range}?key=${apiKey}`
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`
   );
 
   if (sheetResponse.status !== 200) {
@@ -75,7 +75,7 @@ export const getObjectFromSheet = async (
 
     format.forEach((map: any) => {
       const value: string = Object.values(map)?.[0] as string;
-      const key :string = Object.keys(map)?.[0] as string;
+      const key: string = Object.keys(map)?.[0] as string;
       if (row0 === value) {
         csvObject[key] = row[1];
       }

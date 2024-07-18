@@ -224,8 +224,9 @@ describe("Test app.ts", () => {
     ];
     const sheet = "sheet1";
     const spreadsheetUrl = "https://docs.google.com/spreadsheets/d/1";
+    const escapedUrl = encodeURIComponent(spreadsheetUrl);
     const response = await request(app).get(
-      `/api/object-from-sheet?spreadsheetUrl=${spreadsheetUrl}&format=${JSON.stringify(
+      `/api/object-from-sheet?spreadsheetUrl=${escapedUrl}&format=${JSON.stringify(
         format
       )}&sheet=${sheet}`
     );

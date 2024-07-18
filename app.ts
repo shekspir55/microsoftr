@@ -18,6 +18,7 @@ app.get("/", (req, res) => res.json({ message: "Hello world" }));
 
 app.get("/api/array-data-from-sheet", async (req, res) => {
   const { spreadsheetUrl, sheet, format } = req.query;
+  console.log({ spreadsheetUrl, format,sheet });
 
   try {
     const formatArray = JSON.parse(format as string);
@@ -43,7 +44,7 @@ app.get("/api/object-from-sheet", async (req, res) => {
       sheet as string,
       JSON.parse(format as string)
     );
-    
+
     res.status(200).send(result);
   } catch (error) {
     console.error(error);
