@@ -1,3 +1,5 @@
+import request from "supertest";
+
 import {
   getNumberOfCachedResponses,
   proxyCache,
@@ -179,15 +181,12 @@ describe("Test app.ts", () => {
   });
 
   test("GET / should return Hello world", async () => {
-    const request = require("supertest");
-
     const response = await request(app).get("/");
 
     expect(response.body).toEqual({ message: "Hello world" });
   });
 
   test("GET /api/array-data-from-sheet should return the formatted data object array from csv", async () => {
-    const request = require("supertest");
     const format = [
       { name: "name" },
       { whereToFind: "where to find" },
@@ -218,10 +217,17 @@ describe("Test app.ts", () => {
   });
 
   test("GET /api/object-from-sheet should return the formatted data object", async () => {
-    const request = require("supertest");
-
+    const format = [
+      { zgst: "ZGST" },
+      { dufflebag: "Dufflebag" },
+      { lernetsee: "Lernetsee" },
+    ];
+    const sheet = "sheet1";
+    const spreadsheetUrl = "https://docs.google.com/spreadsheets/d/1";
     const response = await request(app).get(
-      '/api/object-from-sheet?spreadsheetUrl=https://docs.google.com/spreadsheets/d/1&sheet=sheet1&format=[{"zgst":"ZGST"},{"dufflebag":"Dufflebag"},{"lernetsee":"Lernetsee"}]'
+      `/api/object-from-sheet?spreadsheetUrl=${spreadsheetUrl}&format=${JSON.stringify(
+        format
+      )}&sheet=${sheet}`
     );
 
     expect(response.status).toEqual(200);
