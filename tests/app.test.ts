@@ -13,8 +13,11 @@ import app from "../app";
 
 import { sheetContent } from "./sheet-content";
 
+const SECONDS = 1000;
+jest.setTimeout(70 * SECONDS);
+
 describe("Test app.ts", () => {
-  beforeEach(() => {
+  beforeAll(() => {
     // mock the fetch function to return the sheet content if the URL is correct
     jest.spyOn(global, "fetch").mockImplementation(async (url) => {
       if (
@@ -24,7 +27,7 @@ describe("Test app.ts", () => {
       ) {
         return {
           status: 200,
-          json: async () => sheetContent,
+          json: async () => JSON.parse(JSON.stringify(sheetContent)),
         } as Response;
       }
 
@@ -78,6 +81,8 @@ describe("Test app.ts", () => {
       expect(row).toHaveProperty("labelsAm");
       expect(row).toHaveProperty("labelsRu");
     });
+
+    expect(result).toHaveLength(sheetContent.values.length - 1);
   });
 
   it("should return the formatted data object", async () => {
@@ -113,135 +118,121 @@ describe("Test app.ts", () => {
     expect(result2.zgst1).toBeUndefined();
   });
 
-  // // a proxy function that caches the data for 1 minute
-  // it("should return the cached data", async () => {
-  //   const format = [
-  //     { zgst: "ZGST" },
-  //     { dufflebag: "Dufflebag" },
-  //     { lernetsee: "Lernetsee" },
-  //   ];
-  //   const spreadsheetUrl = "https://docs.google.com/spreadsheets/d/1";
-  //   const sheet = "sheet1";
+  // a proxy function that caches the data for 1 minute
+  it("should return the cached data", async () => {
+    const format = [
+      { zgst: "ZGST" },
+      { dufflebag: "Dufflebag" },
+      { lernetsee: "Lernetsee" },
+    ];
+    const spreadsheetUrl = "https://docs.google.com/spreadsheets/d/1";
+    const sheet = "sheet1";
 
-  //   const result = await getObjectFromSheet(spreadsheetUrl, sheet, format);
+    const result = await getObjectFromSheet(spreadsheetUrl, sheet, format);
 
-  //   expect(result).toHaveProperty("zgst");
-  //   expect(result).toHaveProperty("dufflebag");
-  //   expect(result).toHaveProperty("lernetsee");
+    expect(result).toHaveProperty("zgst");
+    expect(result).toHaveProperty("dufflebag");
+    expect(result).toHaveProperty("lernetsee");
 
-  //   expect(result.zgst).toEqual("https://zgst.am/");
-  //   expect(result.dufflebag).toEqual("https://dufflebag.am/");
-  //   expect(result.lernetsee).toEqual("https://it-it.facebook.com/lernetsee/");
+    expect(result.zgst).toEqual("https://zgst.am/");
+    expect(result.dufflebag).toEqual("https://dufflebag.am/");
+    expect(result.lernetsee).toEqual("https://it-it.facebook.com/lernetsee/");
 
-  //   const result2 = await proxyCache(getObjectFromSheet, [
-  //     spreadsheetUrl,
-  //     sheet,
-  //     format,
-  //   ]);
+    const result2 = await proxyCache(getObjectFromSheet, [
+      spreadsheetUrl,
+      sheet,
+      format,
+    ]);
 
-  //   expect(result2.body).toEqual(result.body);
+    expect(result2.body).toEqual(result.body);
+  });
 
-  //   // wait for 1 minute
-  //   await new Promise((resolve) => setTimeout(resolve, 1000 * 60));
+  it("should clean up the cache after 1 minute", async () => {
+    const format = [
+      { zgst: "ZGST" },
+      { dufflebag: "Dufflebag" },
+      { lernetsee: "Lernetsee" },
+    ];
+    const spreadsheetUrl = "https://docs.google.com/spreadsheets/d/1";
+    const sheet = "sheet1";
 
-  //   // Change the value of the sheet response
-  //   const result3 = await proxyCache(getObjectFromSheet, [
-  //     spreadsheetUrl,
-  //     sheet,
-  //     format,
-  //   ]);
+    const result = await proxyCache(getObjectFromSheet, [
+      spreadsheetUrl,
+      sheet,
+      format,
+    ]);
 
-  //   const result4 = await getObjectFromSheet(spreadsheetUrl, sheet, format);
+    const result2 = await proxyCache(getArrayDataFromSheet, [
+      spreadsheetUrl,
+      sheet,
+      format,
+    ]);
 
-  //   expect(result3).not.toEqual(result4);
-  // });
+    proxyCacheCleanupScheduler();
+    expect(getNumberOfCachedResponses()).toEqual(2);
 
-  // it("should clean up the cache after 1 minute", async () => {
-  //   const format = [
-  //     { zgst: "ZGST" },
-  //     { dufflebag: "Dufflebag" },
-  //     { lernetsee: "Lernetsee" },
-  //   ];
-  //   const spreadsheetUrl = "https://docs.google.com/spreadsheets/d/1";
-  //   const sheet = "sheet1";
+    // wait for 1 minute and 1 second
+    await new Promise((resolve) => setTimeout(resolve, SECONDS * 61));
 
-  //   const result = await proxyCache(getObjectFromSheet, [
-  //     spreadsheetUrl,
-  //     sheet,
-  //     format,
-  //   ]);
+    expect(getNumberOfCachedResponses()).toEqual(0);
+    stopProxyCacheCleanupScheduler();
+  });
 
-  //   const result2 = await proxyCache(getArrayDataFromSheet, [
-  //     spreadsheetUrl,
-  //     sheet,
-  //     format,
-  //   ]);
+  test("GET / should return Hello world", async () => {
+    const request = require("supertest");
 
-  //   proxyCacheCleanupScheduler();
-  //   expect(getNumberOfCachedResponses()).toEqual(2);
+    const response = await request(app).get("/");
 
-  //   // wait for 1 minute and 1 second
-  //   await new Promise((resolve) => setTimeout(resolve, 1000 * 61));
+    expect(response.body).toEqual({ message: "Hello world" });
+  });
 
-  //   expect(getNumberOfCachedResponses()).toEqual(0);
-  //   stopProxyCacheCleanupScheduler();
-  // });
+  test("GET /api/array-data-from-sheet should return the formatted data object array from csv", async () => {
+    const request = require("supertest");
+    const format = [
+      { name: "name" },
+      { whereToFind: "where to find" },
+      { labels: "labels" },
+      { labelsAm: "labels arm, translated" },
+      { labelsRu: "labels ru, translated" },
+    ];
+    const sheet = "sheet1";
+    const spreadsheetUrl = "https://docs.google.com/spreadsheets/d/1";
 
-  // test("GET / should return Hello world", async () => {
-  //   const request = require("supertest");
+    const escapedUrl = encodeURIComponent(spreadsheetUrl);
 
-  //   const response = await request(app).get("/");
+    const formatString = JSON.stringify(format);
+    const response = await request(app).get(
+      `/api/array-data-from-sheet?spreadsheetUrl=${escapedUrl}&format=${formatString}&sheet=${sheet}`
+    );
 
-  //   expect(response.body).toEqual({ message: "Hello world" });
-  // });
+    expect(response.status).toEqual(200);
+    expect(response.body).toHaveLength(sheetContent.values.length - 1);
 
-  // test("GET /api/array-data-from-sheet should return the formatted data object array from csv", async () => {
-  //   const request = require("supertest");
-  //   const format = [
-  //     { name: "name" },
-  //     { whereToFind: "where to find" },
-  //     { labels: "labels" },
-  //     { labelsAm: "labels arm, translated" },
-  //     { labelsRu: "labels ru, translated" },
-  //   ];
-  //   const sheet = "sheet1";
-  //   const spreadsheetUrl = "https://docs.google.com/spreadsheets/d/1";
+    response.body.forEach((row: any) => {
+      expect(row).toHaveProperty("name");
+      expect(row).toHaveProperty("whereToFind");
+      expect(row).toHaveProperty("labels");
+      expect(row).toHaveProperty("labelsAm");
+      expect(row).toHaveProperty("labelsRu");
+    });
+  });
 
-  //   const escapedUrl = encodeURIComponent(spreadsheetUrl + sheet);
+  test("GET /api/object-from-sheet should return the formatted data object", async () => {
+    const request = require("supertest");
 
-  //   const formatString = JSON.stringify(format);
-  //   const response = await request(app).get(
-  //     `/api/array-data-from-sheet?spreadsheetUrl=${escapedUrl}&format=${formatString}`
-  //   );
+    const response = await request(app).get(
+      '/api/object-from-sheet?spreadsheetUrl=https://docs.google.com/spreadsheets/d/1&sheet=sheet1&format=[{"zgst":"ZGST"},{"dufflebag":"Dufflebag"},{"lernetsee":"Lernetsee"}]'
+    );
 
-  //   expect(response.status).toEqual(200);
-  //   expect(response.body).toHaveLength(2);
+    expect(response.status).toEqual(200);
+    expect(response.body).toHaveProperty("zgst");
+    expect(response.body).toHaveProperty("dufflebag");
+    expect(response.body).toHaveProperty("lernetsee");
 
-  //   response.body.forEach((row: any) => {
-  //     expect(row).toHaveProperty("name");
-  //     expect(row).toHaveProperty("whereToFind");
-  //     expect(row).toHaveProperty("labels");
-  //     expect(row).toHaveProperty("labelsAm");
-  //     expect(row).toHaveProperty("labelsRu");
-  //   });
-  // });
-
-  // test("GET /api/object-from-sheet should return the formatted data object", async () => {
-  //   const request = require("supertest");
-
-  //   const response = await request(app).get(
-  //     '/api/object-from-sheet?spreadsheetUrl=https://docs.google.com/spreadsheets/d/1&sheet=sheet1&format=[{"zgst":"ZGST"},{"dufflebag":"Dufflebag"},{"lernetsee":"Lernetsee"}]'
-  //   );
-
-  //   expect(response.status).toEqual(200);
-  //   expect(response.body).toHaveProperty("zgst");
-  //   expect(response.body).toHaveProperty("dufflebag");
-  //   expect(response.body).toHaveProperty("lernetsee");
-
-  //   expect(response.body.zgst).toEqual("https://zgst.am/");
-  //   expect(response.body.dufflebag).toEqual("https://dufflebag.am/");
-  //   expect(response.body.lernetsee).toEqual(
-  //     "https://it-it.facebook.com/lernetsee/"
-  //   );
-  // });
+    expect(response.body.zgst).toEqual("https://zgst.am/");
+    expect(response.body.dufflebag).toEqual("https://dufflebag.am/");
+    expect(response.body.lernetsee).toEqual(
+      "https://it-it.facebook.com/lernetsee/"
+    );
+  });
 });

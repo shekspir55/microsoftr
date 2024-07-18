@@ -18,12 +18,15 @@ app.get("/", (req, res) => res.json({ message: "Hello world" }));
 
 app.get("/api/array-data-from-sheet", async (req, res) => {
   const { spreadsheetUrl, sheet, format } = req.query;
+
   try {
+    const formatArray = JSON.parse(format as string);
     const result = await getArrayDataFromSheet(
       spreadsheetUrl as string,
       sheet as string,
-      JSON.parse(format as string)
+      formatArray
     );
+
     res.status(200).send(result);
   } catch (error) {
     console.error(error);

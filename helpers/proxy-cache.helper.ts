@@ -24,7 +24,7 @@ export const proxyCache = async (fn: Function, args: any[]) => {
     const cached = cachedResponses.find((cached) => cached.key === key);
 
     if (cached && Date.now() - cached.timestamp < oneMinute) {
-      return cached.response;
+      return JSON.parse(JSON.stringify(cached.response));
     }
   }
 
