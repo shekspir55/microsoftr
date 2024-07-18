@@ -25,9 +25,9 @@ app.get("/api/array-data-from-sheet", async (req, res) => {
       JSON.parse(format as string)
     );
     res.status(200).send(result);
-  } catch (error: Error) {
+  } catch (error) {
     console.error(error);
-    res.status(500).send({ message: error.message });
+    res.status(500).send({ error });
   }
 });
 
@@ -41,9 +41,9 @@ app.get("/api/object-from-sheet", async (req, res) => {
       JSON.parse(format as string)
     );
     res.status(200).send(result);
-  } catch (error: Error) {
+  } catch (error) {
     console.error(error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error });
   }
 });
 

@@ -1,3 +1,5 @@
+import { clear } from "console";
+
 export type CachedData = {
   key: string;
   response: any;
@@ -36,7 +38,7 @@ export const proxyCache = async (fn: Function, args: any[]) => {
   return response;
 };
 
-let cleanUpIsCalled = false;
+let cacheInterval: NodeJS.Timeout | undefined = undefined;
 
 export const getNumberOfCachedResponses = () =>
   cachedFunctionResponse.reduce(
@@ -45,14 +47,12 @@ export const getNumberOfCachedResponses = () =>
   );
 
 export const proxyCacheCleanupScheduler = () => {
-  if (cleanUpIsCalled) {
-    return;
+  if (cacheInterval) {
+    return cacheInterval;
   }
 
-  cleanUpIsCalled = true;
-
   const oneMinute = 1000 * 60;
-  setInterval(
+  cacheInterval = setInterval(
     () =>
       cachedFunctionResponse.forEach(
         (cachedFunction) =>
@@ -63,4 +63,13 @@ export const proxyCacheCleanupScheduler = () => {
       ),
     oneMinute
   );
+
+  return cacheInterval;
+};
+
+export const stopProxyCacheCleanupScheduler = () => {
+  if (!cacheInterval) {
+    return;
+  }
+  clearInterval(cacheInterval);
 };

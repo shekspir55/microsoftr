@@ -1,5 +1,3 @@
-// https://sheets.googleapis.com/v4/spreadsheets/xxxxxxxxxxxxx/values/A:Z?key=AIzaSyCCkcpr4vPU2ucC1KzGAAneOWGIn_y-ZsQ
-
 export const getSheet = async (
   spreadsheetUrl: string,
   sheetName: string
@@ -7,14 +5,14 @@ export const getSheet = async (
   const apiKey = process.env.GOOGLE_API_KEY;
 
   // validate the spreadsheet URL to be valid google sheets URL
-  if (!spreadsheetUrl.includes("https://docs.google.com/spreadsheets/")) {
+  if (!spreadsheetUrl.includes("https://docs.google.com/spreadsheets/d/")) {
     throw new Error("Invalid Google spreadsheet URL");
   }
-  
+
   const spreadsheetId = spreadsheetUrl.split("/d/")[1].split("/")[0];
   const range = sheetName ? `${sheetName}!A:Z` : "A:Z";
   if (!apiKey) {
-    throw new Error("Invalid API key");
+    throw new Error("No API key");
   }
 
   if (!spreadsheetId) {
@@ -43,10 +41,14 @@ export const getArrayDataFromSheet = async (
 ): Promise<any[]> => {
   const sheetValues = await getSheet(spreadsheetUrl, sheetName);
 
-  const newFormat = sheetValues[0].map((key: string) => {
-    const mapping = formatMapping.find((map) => map[key]);
-    return mapping ? mapping[key] : key;
-  });
+  const newFormat = sheetValues[0]
+    .map((value: string) => {
+      const mapping = formatMapping.find(
+        (map) => Object.values(map)[0] === value
+      );
+      return mapping ? Object.keys(mapping)[0] : undefined;
+    })
+    .filter((value: string) => value);
 
   sheetValues.shift();
 
@@ -73,7 +75,7 @@ export const getObjectFromSheet = async (
 
     format.forEach((map: any) => {
       const value: string = Object.values(map)?.[0] as string;
-      const key = map[value];
+      const key :string = Object.keys(map)?.[0] as string;
       if (row0 === value) {
         csvObject[key] = row[1];
       }
