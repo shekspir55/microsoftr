@@ -186,7 +186,7 @@ describe("Test app.ts", () => {
     expect(response.body).toEqual({ message: "Hello world" });
   });
 
-  test("GET /api/array-data-from-sheet should return the formatted data object array from csv", async () => {
+  test("GET /api/array-from-sheet should return the formatted data object array from csv", async () => {
     const format = [
       { name: "name" },
       { whereToFind: "where to find" },
@@ -201,7 +201,7 @@ describe("Test app.ts", () => {
 
     const formatString = JSON.stringify(format);
     const response = await request(app).get(
-      `/api/array-data-from-sheet?spreadsheetUrl=${escapedUrl}&format=${formatString}&sheet=${sheet}`
+      `/api/array-from-sheet?spreadsheetUrl=${escapedUrl}&format=${formatString}&sheet=${sheet}`
     );
 
     expect(response.status).toEqual(200);

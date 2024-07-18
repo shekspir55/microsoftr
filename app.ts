@@ -16,7 +16,7 @@ if (process.env.NODE_ENV !== "production") {
 // test route
 app.get("/", (req, res) => res.json({ message: "Hello world" }));
 
-app.get("/api/array-data-from-sheet", async (req, res) => {
+app.get("/api/array-from-sheet", async (req, res) => {
   const { spreadsheetUrl, sheet, format } = req.query;
   console.log({ spreadsheetUrl, format,sheet });
 
