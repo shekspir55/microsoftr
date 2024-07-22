@@ -1,9 +1,17 @@
 build:
-	docker build -t microsoftr .
+	docker compose build 
 
+build_no_cache:
+	docker compose build --no-cache
 
-up: down build
-	docker-compose up -d
+up:
+	docker compose up -d
 
 down:
-	docker-compose down
+	docker compose down
+
+restart:
+	docker compose down ; docker compose up -d
+
+logs:
+	docker compose logs

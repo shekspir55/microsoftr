@@ -27,3 +27,36 @@ The application is designed to serve as a minimal backend system. Its primary fu
   - `format`: A JSON string that specifies the format or structure of the data to be returned.
 - **Success Response**: A `200 OK` status with a JSON payload containing the data in object format.
 - **Error Response**: A `500 Internal Server Error` status with an error message.
+
+## How to build and run locally.
+
+##### Build docker image from source.
+```
+make build
+```
+or without cache
+```
+make build_no_cache
+```
+
+##### Run docker container with docker compose.
+```
+make up
+```
+
+##### Check service logs.
+```
+make logs
+```
+
+##### Restart all running services.
+```
+make restart
+```
+
+##### Down all services.
+```
+make down
+```
+
+That's All, Bye.
